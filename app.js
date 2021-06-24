@@ -11,20 +11,7 @@ class Book {
 class UI {
   // Static key word means a static method(function) of a class
   static displayBooks() {
-    const StoredBooks = [
-      {
-        title: "Book 1",
-        author: "John",
-        isbn: "Horror",
-      },
-      {
-        title: "Book 2",
-        author: "Jane",
-        isbn: "Fantasy",
-      },
-    ];
-
-    const books = StoredBooks;
+    const books = Store.getBooks();
 
     // Loop through the array of books
     books.forEach((book) => UI.addBookToList(book));
@@ -94,7 +81,18 @@ class Store {
     localStorage.setItem("books", JSON.stringify(books));
   }
 
-  static removeBook(book) {}
+  static removeBook(isbn) {
+    const books = Store.getBooks();
+
+    // To remove a book we will match the isbn number of the book to the books in the local storage
+    books.forEach((book, index) => {
+      if (book.isbn === isbn) {
+        books.splice(index, 1); // when isbn number matches, we will get the index of that book and we can splice it from the array
+      }
+    });
+
+    localStorage.setItem("books", JSON.stringify(books));
+  }
 }
 
 // Event: Display Book
@@ -120,6 +118,9 @@ document.querySelector("#book-form").addEventListener("submit", (e) => {
     // Add Book to the UI
     UI.addBookToList(book);
 
+    // Add book to local storage
+    Store.addBook(book);
+
     // Show success message after book is added
     UI.showAlert("Book added!", "success");
 
@@ -130,7 +131,11 @@ document.querySelector("#book-form").addEventListener("submit", (e) => {
 
 // Event: Remove a Book
 document.querySelector("#book-list").addEventListener("click", (e) => {
+  // Remove book from UI
   UI.deleteBook(e.target); // e.target will select the element that you click on
+
+  // Remove book from local storage
+  Store.removeBook(e.target.parentElement.previousElementSibling.textContent); // Targetting the isbn number as it will be unique for each book
 
   // Show success message after book is removed
   UI.showAlert("Book removed!", "success");
