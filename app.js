@@ -1,9 +1,9 @@
 // Book Class: Represents a Book
 class Book {
-  constructor(title, author, genre) {
+  constructor(title, author, isbn) {
     this.title = title;
     this.author = author;
-    this.genre = genre;
+    this.isbn = isbn;
   }
 }
 
@@ -15,12 +15,12 @@ class UI {
       {
         title: "Book 1",
         author: "John",
-        genre: "Horror",
+        isbn: "Horror",
       },
       {
         title: "Book 2",
         author: "Jane",
-        genre: "Fantasy",
+        isbn: "Fantasy",
       },
     ];
 
@@ -35,11 +35,11 @@ class UI {
 
     const row = document.createElement("tr");
 
-    // Create rows with title, author and genre obtained by looping through array of books
+    // Create rows with title, author and isbn obtained by looping through array of books
     row.innerHTML = `
             <td>${book.title}</td>
             <td>${book.author}</td>
-            <td>${book.genre}</td>
+            <td>${book.isbn}</td>
             <td><i class="btn-danger btn-sm fas fa-times delete"></i></td>
         `;
 
@@ -53,16 +53,49 @@ class UI {
     }
   }
 
-  static showAlert(message, className) {}
+  // Show alert message if book was added successfully or not
+  static showAlert(message, className) {
+    const div = document.createElement("div");
+    div.className = `alert alert-${className}`;
+    div.appendChild(document.createTextNode(message));
+    const container = document.querySelector(".container");
+    const form = document.querySelector("#book-form");
+    container.insertBefore(div, form);
+
+    // Make the alert disappear in 3 seconds
+    setTimeout(() => document.querySelector(".alert").remove(), 3000);
+  }
 
   static clearFields() {
     document.querySelector("#title").value = "";
     document.querySelector("#author").value = "";
-    document.querySelector("#genre").value = "";
+    document.querySelector("#isbn").value = "";
   }
 }
 
-// Stores Class: Handles Storage
+// Stores Class: Handles Storage. Storing books in local storage
+class Store {
+  static getBooks() {
+    let books;
+    if (localStorage.getItem("books") === null) {
+      books = [];
+    } else {
+      books = JSON.parse(localStorage.getItem("books"));
+    }
+
+    return books;
+  }
+
+  static addBook(book) {
+    const books = Store.getBooks();
+
+    books.push(book);
+
+    localStorage.setItem("books", JSON.stringify(books));
+  }
+
+  static removeBook(book) {}
+}
 
 // Event: Display Book
 document.addEventListener("DOMContentLoaded", UI.displayBooks);
@@ -75,17 +108,20 @@ document.querySelector("#book-form").addEventListener("submit", (e) => {
   // Get values from form inputs
   const title = document.querySelector("#title").value;
   const author = document.querySelector("#author").value;
-  const genre = document.querySelector("#genre").value;
+  const isbn = document.querySelector("#isbn").value;
 
   // Validate if input fields are empty
-  if (title === "" || author === "" || genre === "") {
-    alert("Please fill all the fields");
+  if (title === "" || author === "" || isbn === "") {
+    UI.showAlert("Please fill all the fields", "danger"); // Show error message if all fields are not filled
   } else {
     // Instantiate book (make book instance)
-    const book = new Book(title, author, genre);
+    const book = new Book(title, author, isbn);
 
     // Add Book to the UI
     UI.addBookToList(book);
+
+    // Show success message after book is added
+    UI.showAlert("Book added!", "success");
 
     // Clear input fields after submitting
     UI.clearFields();
@@ -95,4 +131,7 @@ document.querySelector("#book-form").addEventListener("submit", (e) => {
 // Event: Remove a Book
 document.querySelector("#book-list").addEventListener("click", (e) => {
   UI.deleteBook(e.target); // e.target will select the element that you click on
+
+  // Show success message after book is removed
+  UI.showAlert("Book removed!", "success");
 });
